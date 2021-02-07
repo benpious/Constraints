@@ -1,5 +1,8 @@
 import UIKit
 
+/**
+ The DSL. Do not interact with this class directly.
+ */
 @_functionBuilder
 public struct LayoutBuilder {
         
@@ -35,18 +38,29 @@ public struct LayoutBuilder {
     
 }
 
+/**
+ The product of a constraint DSL expression.
+ 
+ Implement this type to make custom products of custom targets.
+ */
 public protocol LayoutComponent {
     
     var constraints: [Constraint] { get }
     
 }
 
+/**
+ The "rhs" of a constraint assignment. The "second item" in NSLayoutConstraint parlence.
+ */
 public protocol ConstraintTarget {
     
     func apply(to constraint: inout ConstraintBuilder)
     
 }
 
+/**
+ The "rhs" of a constraint assignment. The "second item" in NSLayoutConstraint parlence.
+ */
 public protocol ConstraintEdgesTarget {
     
     func apply(to edges: inout EdgesConstraintBuilder)

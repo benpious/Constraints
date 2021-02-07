@@ -1,3 +1,6 @@
+/*
+ An Implementation detail of `ConstraintLayout`. You shouldn't need to interact with this directly.
+ */
 public protocol LayoutOptionalProtocol {
     
     associatedtype Wrapped
@@ -8,6 +11,9 @@ public protocol LayoutOptionalProtocol {
 
 extension Optional: LayoutOptionalProtocol {
     
+    /*
+     An Implementation detail of `ConstraintLayout`. You shouldn't need to interact with this directly.
+     */
     public var ___wrapped: Wrapped? {
         self
     }

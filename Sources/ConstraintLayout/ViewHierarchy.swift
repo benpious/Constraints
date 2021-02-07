@@ -1,5 +1,8 @@
 import UIKit
 
+/**
+ WIP reserved protocol so `UILayoutGuides` can someday be added. 
+ */
 public protocol ViewHierarchyComponent {
     
 }
@@ -205,6 +208,9 @@ public struct ViewHierarchyBuilder {
     
 }
 
+/**
+ An implementation detail of `ConstraintLayout`
+ */
 public protocol EitherProtocol {
     
     associatedtype First
@@ -214,6 +220,9 @@ public protocol EitherProtocol {
     var second: Second? { get }
 }
 
+/**
+ An implementation detail of `ConstraintLayout`
+ */
 public struct Either<First, Second>: EitherProtocol, ViewHierarchyComponent where First: ViewHierarchyComponent, Second: ViewHierarchyComponent {
     
     public var first: First? = nil

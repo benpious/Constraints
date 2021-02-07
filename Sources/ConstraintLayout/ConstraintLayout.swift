@@ -1,7 +1,93 @@
 import UIKit
 
+/**
+ Implement this protocol to use `ConstraintLayout`.
+ 
+ ## Getting Started
+ 
+ Here is a minimal implementation of `DeclarativeLayout`:
+ 
+ ```
+ class <#MyView#>: UIView, DeclarativeLayout {
+ 
+ init() {
+     super.init(frame: .zero)
+     prepareLayout()
+ }
+ 
+ @available(*, unavailable)
+ required init?(coder: NSCoder) {
+     fatalError("init(coder:) has not been implemented")
+ }
+ 
+ var layout: Layout {
+     Layout {
+        <#add views...#>
+     } constraints: { <#views#> in
+        <#constraints...#>
+     }
+ }
+ 
+ @LayoutInput
+ var <#Add any Inputs...#>
+
+ }
+ ```
+ 
+ This example demonstrates the three things you need to know to get started
+ with `ConstraintLayout`:
+ 
+ - Constraints go in `layout`
+ - You must call `prepareLayout()` for the layout code to actually be executed
+ - Mutating `LayoutInputs` cause your `layout` to be re-evaluated
+ 
+ ## Adding Views
+ 
+ For safety, `ConstraintLayout` forces you to add views in a way that allows it to
+ verify that the views are in the view hierarchy, _provided that you never mutate the
+ `subviews` property of your view yourself_. To add views, you simply write them out in
+ the order of the depth you want them to be shown:
+ 
+ ```
+ Layout {
+    myChildView
+    myOtherChildView
+    if myLayoutInput {
+        myThirdChildView
+    }
+ ...
+ ```
+ You can also use `if` statements with `else` to conditionally add views.
+ 
+ ## Writing Constraints
+ 
+ Once you've added the views, you can start writing constraints. Continuing the example
+ from above, we might write a constraint block that looks like this:
+ 
+ ```
+ layout: { myChildView, myOtherChildView, myThirdChildView in
+    myChildView.leading.equalToSuperview().offset(10)
+    myOtherChildView.edges.equalTo(myChildView)
+    if let myThirdChildView = myThirdChildView.unwrapped {
+        myThirdChildView.edges.equalToSuperview()
+    }
+    // and so on
+ }
+ ```
+ 
+ Note that you can still access any property on the original views through
+ `dynamicMemberLookup` if necessary. It's also important to note what you _cannot_ do:
+ use any view that wasn't added in the view hierarchy step. And all views that might not
+ be available are only available conditionally behind an `Optional`.
+ */
 public protocol DeclarativeLayout: UIView {
     
+    /**
+     The place where your layout is declared.
+     
+     See the documentation for `DeclarativeLayout` for more information on how to
+     implement this function.
+     */
     var layout: Layout { get }
     
 }
@@ -21,35 +107,56 @@ extension InsertedView: ConstraintTarget, ConstraintEdgesTarget where T: AnyObje
         wrapped[keyPath: member]
     }
 
+    /**
+     Constrain the edges of the callee.
+     */
     public var edges: EdgesAnchor {
         .init(base: wrapped)
     }
     
+    /**
+     Constrain the leading edge of the callee.
+     */
     public var leading: LayoutAnchor {
         .init(base: wrapped,
               attribute: .leading)
     }
     
+    /**
+     Constrain the trailing edge of the callee.
+     */
     public var trailing: LayoutAnchor {
         .init(base: wrapped,
               attribute: .trailing)
     }
     
+    /**
+     Constrain the top edge of the callee.
+     */
     public var top: LayoutAnchor {
         .init(base: wrapped,
               attribute: .top)
     }
     
+    /**
+     Constrain the bottom edge of the callee.
+     */
     public var bottom: LayoutAnchor {
         .init(base: wrapped,
               attribute: .bottom)
     }
 
+    /**
+     Constrain the width of the callee.
+     */
     public var width: LayoutAnchor {
         .init(base: wrapped,
               attribute: .width)
     }
     
+    /**
+     Constrain the height of the callee.
+     */
     public var height: LayoutAnchor {
         .init(base: wrapped,
               attribute: .height)
@@ -59,6 +166,9 @@ extension InsertedView: ConstraintTarget, ConstraintEdgesTarget where T: AnyObje
 
 public extension InsertedView where T: LayoutOptionalProtocol {
     
+    /**
+     Gets at the wrapped value so it can be read in an if-let in the DSL.
+     */
     var unwrapped: InsertedView<T.Wrapped>? {
         if let wrapped = wrapped.___wrapped {
             return .init(wrapped)
@@ -71,6 +181,9 @@ public extension InsertedView where T: LayoutOptionalProtocol {
 
 public extension InsertedView where T: EitherProtocol {
     
+    /**
+     Gets at the true side of an if-else so it can be read in an if-let in the DSL.
+     */
     var first: InsertedView<T.First>? {
         if let first = wrapped.first {
             return InsertedView<T.First>(first)
@@ -79,6 +192,9 @@ public extension InsertedView where T: EitherProtocol {
         }
     }
     
+    /**
+     Gets at the true side of an if-else so it can be read in an if-let in the DSL.
+     */
     var second: InsertedView<T.Second>? {
         if let second: T.Second = wrapped.second {
             return InsertedView<T.Second>(second)
@@ -98,7 +214,9 @@ extension InsertedView.LayoutAnchor: ConstraintTarget where T: AnyObject {
     }
     
 }
-
+/**
+ An object that, when not optional, is definitely a valid target for a constraint.
+ */
 @dynamicMemberLookup
 public struct InsertedView<T> {
     
@@ -205,6 +323,11 @@ public final class LayoutInput<T>: LayoutInputting {
 
 extension DeclarativeLayout {
     
+    /**
+     Runs the layout, and establishes listeners for all `LayoutInput`s.
+     
+     Typically you should call this in your view's `init`.
+     */
     public func prepareLayout() {
         let mirror = Mirror(reflecting: self)
         for child in mirror.children {
@@ -269,6 +392,9 @@ fileprivate protocol LayoutInputting {
     
 }
 
+/**
+ A layout, describing the view hierarchy and constraints of a view.
+ */
 public struct Layout {
     
     let constraints: [Constraint]
@@ -318,6 +444,11 @@ public struct Layout {
     
 }
 
+/**
+ A constraint model.
+ 
+ There is no need to interact with this type directly.
+ */
 public struct Constraint {
     
     init(
@@ -450,37 +581,3 @@ public struct Constraint {
     
 }
 
-
-// Test code:
-
-class View: UIView, DeclarativeLayout {
-    
-    init() {
-        super.init(frame: .zero)
-        prepareLayout()
-    }
-    
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    var layout: Layout {
-        Layout {
-            UIView()
-            if shouldAddLeading {
-                UIView()
-            } else {
-                UIView()
-            }
-        } constraints: { (a, b) in
-            if let b = b.first, shouldAddLeading {
-                a.leading.equalTo(b.trailing)
-                a.width.equalTo(7)
-            }
-        }
-    }
-    
-    @LayoutInput
-    var shouldAddLeading = false
-}

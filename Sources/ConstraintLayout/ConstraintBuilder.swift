@@ -1,5 +1,13 @@
 import UIKit
 
+/**
+ A constraint under construction.
+ 
+ You mutate this object through the DSL, or when `apply(to:)` is called by the DSL on
+ your custom type.
+ 
+ There is no need to interact with this class directly except for in the latter scenario.
+ */
 public struct ConstraintBuilder: LayoutComponent {
         
     let first: AnyObject
@@ -47,6 +55,14 @@ public struct ConstraintBuilder: LayoutComponent {
     }
 }
 
+/**
+ Edge constraints under construction.
+ 
+ You mutate this object through the DSL, or when `apply(to:)` is called by the DSL on
+ your custom type.
+ 
+ There is no need to interact with this class directly except for in the latter scenario.
+ */
 public struct EdgesConstraintBuilder: LayoutComponent {
     
     let first: AnyObject
@@ -65,7 +81,7 @@ public struct EdgesConstraintBuilder: LayoutComponent {
         ].map { attribute, constant in
             Constraint(first: first,
                        firstAttribute: attribute,
-                       second: second!, // TODO
+                       second: second,
                        secondAttribute: attribute,
                        constant: constant,
                        multiple: multiple,
