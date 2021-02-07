@@ -32,6 +32,18 @@ extension Layout {
         )
     }
     
+    public init<A, B, C>(
+        @ViewHierarchyBuilder viewHierarchy: () -> (ViewHierarchy3<A, B, C>),
+        @LayoutBuilder constraints: (InsertedView<A>, InsertedView<B>, InsertedView<C>) -> [Constraint]
+    ) {
+        let viewHierarchy = viewHierarchy()
+        self = .init(
+            constraints: viewHierarchy.layout(constraints),
+            views: viewHierarchy.views
+        )
+    }
+
+    
     
 }
 
@@ -81,6 +93,33 @@ public struct ViewHierarchy2<A, B> {
     
 }
 
+public struct ViewHierarchy3<A, B, C> {
+    
+    init(@ViewHierarchyBuilder _ hierarchy: () -> (ViewHierarchy3)) {
+        self = hierarchy()
+    }
+    
+    public init(a: A, b: B, c: C) {
+        self.a = a
+        self.b = b
+        self.c = c
+    }
+    
+    var a: A
+    var b: B
+    var c: C
+    
+    func layout(@LayoutBuilder _ layout: (InsertedView<A>, InsertedView<B>, InsertedView<C>) -> [Constraint]) -> [Constraint] {
+        layout(InsertedView(a), InsertedView(b), InsertedView(c))
+    }
+    
+    var views: [UIView] {
+        [a, b, c].compactMap { $0 as? UIView }
+    }
+    
+}
+
+
 extension Optional: ViewHierarchyComponent where Wrapped: ViewHierarchyComponent {
     
 }
@@ -101,6 +140,11 @@ public struct ViewHierarchyBuilder {
     public static func buildBlock<A, B>(_ a: A, _ b: B) -> ViewHierarchy2<A, B> where A: Component, B: Component {
         .init(a: a, b: b)
     }
+    
+    public static func buildBlock<A, B, C>(_ a: A, _ b: B, _ c: C) -> ViewHierarchy3<A, B, C> where A: Component, B: Component, C: Component {
+        .init(a: a, b: b, c: c)
+    }
+
     
     public static func buildEither<A, B>(first component: A) -> Either<A, B> where A: Component, B: Component {
         Either(first: component)
