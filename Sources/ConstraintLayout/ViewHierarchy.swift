@@ -8,43 +8,34 @@ extension UIView: ViewHierarchyComponent {
     
 }
 
-protocol LayoutWrapper {
+extension Layout {
     
-    associatedtype Interface
-    
-    var interface: Interface { get }
-    
-}
-
-struct ViewWrapper<T>: LayoutWrapper where T: AnyObject {
-    
-    init(_ wrapped: T) {
-        self.wrapped = wrapped
+    public init<A>(
+        @ViewHierarchyBuilder viewHierarchy: () -> (ViewHierarchy1<A>),
+        @LayoutBuilder constraints: (InsertedView<A>) -> [Constraint]
+    ) {
+        let viewHierarchy = viewHierarchy()
+        self = .init(
+            constraints: viewHierarchy.layout(constraints),
+            views: viewHierarchy.views
+        )
     }
     
-    let wrapped: T
-    
-    var interface: ViewLayoutWrapper<T> {
-            fatalError()
-        }
-    
-}
-
-struct OptionalViewWrapper<T>: LayoutWrapper where T: AnyObject {
-    
-    let wrapped: T?
-    
-    init(_ wrapped: T?) {
-        self.wrapped = wrapped
+    public init<A, B>(
+        @ViewHierarchyBuilder viewHierarchy: () -> (ViewHierarchy2<A, B>),
+        @LayoutBuilder constraints: (InsertedView<A>, InsertedView<B>) -> [Constraint]
+    ) {
+        let viewHierarchy = viewHierarchy()
+        self = .init(
+            constraints: viewHierarchy.layout(constraints),
+            views: viewHierarchy.views
+        )
     }
     
-    var interface: ViewLayoutWrapper<T>? {
-            fatalError()
-        }
     
 }
 
-struct ViewHierarchy1<A> where A: LayoutWrapper {
+public struct ViewHierarchy1<A> {
      
     init(@ViewHierarchyBuilder _ hierarchy: () -> (ViewHierarchy1)) {
         self = hierarchy()
@@ -56,13 +47,17 @@ struct ViewHierarchy1<A> where A: LayoutWrapper {
     
     var a: A
     
-    func layout(@LayoutBuilder _ layout: (A.Interface) -> Layout) -> Layout {
-        fatalError()
+    func layout(@LayoutBuilder _ layout: (InsertedView<A>) -> [Constraint]) -> [Constraint] {
+        layout(InsertedView(a))
     }
     
+    var views: [UIView] {
+        [a].compactMap { $0 as? UIView }
+    }
+
 }
 
-struct ViewHierarchy2<A, B> where A: LayoutWrapper, B: LayoutWrapper {
+public struct ViewHierarchy2<A, B> {
      
     init(@ViewHierarchyBuilder _ hierarchy: () -> (ViewHierarchy2)) {
         self = hierarchy()
@@ -76,8 +71,12 @@ struct ViewHierarchy2<A, B> where A: LayoutWrapper, B: LayoutWrapper {
     var a: A
     var b: B
     
-    func layout(@LayoutBuilder _ layout: (A.Interface, B.Interface) -> Layout) -> Layout {
-        fatalError()
+    func layout(@LayoutBuilder _ layout: (InsertedView<A>, InsertedView<B>) -> [Constraint]) -> [Constraint] {
+        layout(InsertedView(a), InsertedView(b))
+    }
+    
+    var views: [UIView] {
+        [a, b].compactMap { $0 as? UIView }
     }
     
 }
@@ -91,22 +90,29 @@ struct ViewHierarchyBuilder {
     
     typealias Component = ViewHierarchyComponent
     
-    static func buildBlock<A>(_ a: A) -> ViewHierarchy1<ViewWrapper<A>> where A: Component {
-        .init(a: ViewWrapper(a))
+    static func buildBlock<A>(_ a: A) -> A where A: Component {
+        a
     }
     
-    static func buildBlock<A, B>(_ a: A, _ b: B) -> ViewHierarchy2<ViewWrapper<A>, ViewWrapper<B>> where A: Component, B: Component {
-        .init(a: ViewWrapper(a), b: ViewWrapper(b))
+    static func buildBlock<A>(_ a: A) -> ViewHierarchy1<A> where A: Component {
+        .init(a: a)
     }
     
-    static func buildBlock<A, B>(_ a: A, _ b: OptionalViewWrapper<B>) -> ViewHierarchy2<ViewWrapper<A>, OptionalViewWrapper<B>> where A: Component, B: Component {
-        .init(a: ViewWrapper(a), b: b)
+    static func buildBlock<A, B>(_ a: A, _ b: B) -> ViewHierarchy2<A, B> where A: Component, B: Component {
+        .init(a: a, b: b)
     }
-
     
-    static func buildIf<A>(_ component: ViewHierarchy1<ViewWrapper<A>>?) -> OptionalViewWrapper<A> where A: ViewHierarchyComponent {
+        static func buildEither<A, B>(first component: A) -> Either<A, B> where A: Component, B: Component {
+            Either(first: component)
+        }
+        
+        static func buildEither<A, B>(second component: B) -> Either<A, B> where A: Component, B: Component {
+            Either(second: component)
+        }
+            
+    static func buildIf<A>(_ component: ViewHierarchy1<A>?) -> A? where A: Component {
         if let component = component {
-            return OptionalViewWrapper(component.a.wrapped)
+            return component.a
         } else {
             fatalError()
         }
@@ -114,44 +120,19 @@ struct ViewHierarchyBuilder {
     
 }
 
-//    static func buildBlock<A, B, C>(_ a: A, _ b: B, _ c: C) -> ViewHierarchy3<A, B, C> where A: Component, B: Component, C: Component {
-//        .init(a: a, b: b, c: c)
-//    }
-//
-//
-//    static func buildEither<A, B>(first component: A) -> Either<A, B> where A: Component, B: Component {
-//        Either(first: component)
-//    }
+protocol EitherProtocol {
     
-//    static func buildEither<A, B>(second component: B) -> Either<A, B> where A: Component, B: Component {
-//        Either(second: component)
-//    }
+    associatedtype First
+    associatedtype Second
+    
+    var first: First? { get }
+    var second: Second? { get }
+}
 
-//struct Either<First, Second>: ViewHierarchyComponent where First: ViewHierarchyComponent, Second: ViewHierarchyComponent {
-//
-//    var first: First? = nil
-//    var second: Second? = nil
-//
-//}
-//
-//struct ViewHierarchy3<A, B, C> where A: LayoutWrapper, B: LayoutWrapper, C: LayoutWrapper {
-//
-//    init(@ViewHierarchyBuilder _ hierarchy: () -> (ViewHierarchy3<A, B, C>)) {
-//        self = hierarchy()
-//    }
-//
-//    init(a: A, b: B, c: C) {
-//        self.a = a
-//        self.b = b
-//        self.c = c
-//    }
-//
-//    var a: A
-//    var b: B
-//    var c: C
-//
-//    func layout(@LayoutBuilder _ layout: (A.Interface, B.Interface, C.Interface) -> Layout) -> Layout {
-//        fatalError()
-//    }
-//
-//}
+struct Either<First, Second>: EitherProtocol, ViewHierarchyComponent where First: ViewHierarchyComponent, Second: ViewHierarchyComponent {
+
+    var first: First? = nil
+    var second: Second? = nil
+
+}
+

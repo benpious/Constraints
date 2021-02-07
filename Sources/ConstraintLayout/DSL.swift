@@ -30,8 +30,8 @@ struct LayoutBuilder {
         }
     }
     
-    static func buildFinalResult(_ component: Component) -> Layout {
-        Layout(constraints: component.constraints)
+    static func buildFinalResult(_ component: Component) -> [Constraint] {
+        component.constraints
     }
     
 }

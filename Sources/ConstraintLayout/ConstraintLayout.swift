@@ -6,30 +6,72 @@ public protocol DeclarativeLayout: UIView {
     
 }
 
-@dynamicMemberLookup
-public struct ViewLayoutWrapper<T>: LayoutItem where T: AnyObject {
+extension InsertedView: LayoutItem where T: AnyObject {
     
     public func apply(to constraint: inout ConstraintBuilder) {
-        constraint.second = wrappped
+        constraint.second = wrapped
         constraint.secondAttribute = constraint.firstAttribute
     }
-    
-    let wrappped: T
+
     
     subscript<U>(dynamicMember member: KeyPath<T, U>) -> U {
-        wrappped[keyPath: member]
+        wrapped[keyPath: member]
     }
     
     var leading: LayoutBase {
-        .init(base: wrappped,
+        .init(base: wrapped,
               attribute: .leading)
     }
     
     var trailing: LayoutBase {
-        .init(base: wrappped,
+        .init(base: wrapped,
               attribute: .trailing)
     }
+
+}
+
+public extension InsertedView where T: LayoutOptionalProtocol {
     
+    var unwrapped: InsertedView<T.Wrapped>? {
+        if let wrapped = wrapped.___wrapped {
+            return .init(wrapped)
+        } else {
+            return nil
+        }
+    }
+    
+}
+
+extension InsertedView where T: EitherProtocol {
+    
+    var first: InsertedView<T.First>? {
+        if let first = wrapped.first {
+            return InsertedView<T.First>(first)
+        } else {
+            return nil
+        }
+    }
+    
+    var second: InsertedView<T.Second>? {
+        if let second: T.Second = wrapped.second {
+            return InsertedView<T.Second>(second)
+        } else {
+            return nil
+        }
+    }
+
+    
+}
+
+@dynamicMemberLookup
+public struct InsertedView<T> {
+    
+    init(_ wrapped: T) {
+        self.wrapped = wrapped
+    }
+    
+    let wrapped: T
+        
     struct LayoutBase {
         
         let base: AnyObject
@@ -56,11 +98,7 @@ public struct ViewLayoutWrapper<T>: LayoutItem where T: AnyObject {
             return builder
         }
 
-        
-        
     }
-
-    
     
 }
 
@@ -116,9 +154,30 @@ extension DeclarativeLayout {
         }
     }
     
+    var _managedViews: [ObjectIdentifier: UIView] {
+        get {
+            let associatedObject = objc_getAssociatedObject(self, &managedViewsKey)
+            if let managedViews = associatedObject as? [ObjectIdentifier: UIView] {
+                return managedViews
+            } else {
+                fatalError("Found object of type \(type(of: associatedObject)), but expected object of type [String: NSLayoutConstraint].")
+            }
+        }
+        set {
+            objc_setAssociatedObject(
+                self,
+                &managedViewsKey,
+                newValue,
+                objc_AssociationPolicy.OBJC_ASSOCIATION_COPY_NONATOMIC
+            )
+        }
+    }
+
+    
 }
 
 fileprivate var managedConstraintsKey = 0
+fileprivate var managedViewsKey = 0
 
 fileprivate protocol LayoutInputting {
     
@@ -129,8 +188,30 @@ fileprivate protocol LayoutInputting {
 public struct Layout {
     
     let constraints: [Constraint]
+    let views: [UIView]
     
     func apply(to view: DeclarativeLayout) {
+        var newManagedViews: [ObjectIdentifier: UIView] = [:]
+        var oldManagedViews = view._managedViews
+        for (index, child) in views.enumerated() {
+            let identifier = ObjectIdentifier(child)
+            oldManagedViews[identifier] = nil
+            newManagedViews[identifier] = child
+            if let oldIndex = view.subviews.firstIndex(of: child) {
+                if index != oldIndex {
+                    // TODO: does this cause constraints to be removed?
+                    view.insertSubview(child,
+                                       at: index)
+                }
+            } else {
+                view.insertSubview(child,
+                                   at: index)
+            }
+        }
+        for view in oldManagedViews.values {
+            view.removeFromSuperview()
+        }
+        view._managedViews = newManagedViews
         var managedConstraints = view._managedConstraints
         var new: [String: NSLayoutConstraint] = [:]
         for constraint in constraints {
@@ -162,24 +243,6 @@ public struct LayoutAnchor: LayoutItem {
     }
         
 }
-
-extension UIView: LayoutItem {
-    
-    public func apply(to constraint: inout ConstraintBuilder) {
-        constraint.second = self
-        constraint.secondAttribute = constraint.firstAttribute
-    }
-    
-    var leading: LayoutAnchor {
-        .init(view: self, attribute: .leading)
-    }
-    
-    var trailing: LayoutAnchor {
-        .init(view: self, attribute: .trailing)
-    }
-    
-}
-
 
 public struct Constraint {
     
@@ -311,29 +374,20 @@ class View: UIView, DeclarativeLayout {
     }
     
     var layout: Layout {
-        ViewHierarchy2({
+        Layout {
             UIView()
             if shouldAddLeading {
                 UIView()
+            } else {
+                UIView()
             }
-        })
-        .layout { (a: ViewLayoutWrapper<UIView>, c: ViewLayoutWrapper<UIView>?) in
-            if let c = c {
-                a.leading.equalTo(c)
+        } constraints: { (a, b) in
+            if let b = b.first, shouldAddLeading {
+                a.leading.equalTo(b)
             }
         }
     }
     
-//    @LayoutBuilder
-//    var layout: Layout {
-//        if shouldAddLeading {
-//            Leading.equalTo(UIView().leading).priority(1000).offset(10)
-//        } else {
-//            Leading.equalTo(UIView().leading).priority(1000).offset(10)
-//        }
-//        Trailing.equalTo(UIView().trailing)
-//    }
-
     @LayoutInput
     var shouldAddLeading = false
 }

@@ -12,12 +12,3 @@ final class ConstraintLayoutTests: XCTestCase {
         ("testExample", testExample),
     ]
 }
-
-class C: UIView, DeclarativeLayout {
-    
-    let layout: Layout = Layout(constraints: [])
-    
-    @LayoutInput
-    var a: Bool = false
-    
-}
