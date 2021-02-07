@@ -114,7 +114,7 @@ struct ViewHierarchyBuilder {
         if let component = component {
             return component.a
         } else {
-            fatalError()
+            return nil
         }
     }
     

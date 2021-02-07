@@ -1,23 +1,17 @@
-//
-//  File.swift
-//  
-//
-//  Created by Benjamin Pious on 2/7/21.
-//
-
 import UIKit
 
 public struct ConstraintBuilder: LayoutComponent {
     
+    let first: AnyObject
     let firstAttribute: Constraint.Attribute
     var second: AnyObject? = nil
     var secondAttribute: Constraint.Attribute = .noAttribute
     var constant: CGFloat = 0
     var multiple: CGFloat = 0
-    var relationShip: Constraint.Relation?
+    var relationShip: Constraint.Relation
     var priority: Float = 1000
     
-    func makeConstraint(first: AnyObject) -> Constraint {
+    func makeConstraint() -> Constraint {
         .init(
             first: first,
             firstAttribute: firstAttribute,
@@ -25,7 +19,7 @@ public struct ConstraintBuilder: LayoutComponent {
             secondAttribute: secondAttribute,
             constant: constant,
             multiple: multiple,
-            relationShip: relationShip!, // TODO
+            relationShip: relationShip, 
             priority: priority)
     }
     
@@ -48,6 +42,7 @@ public struct ConstraintBuilder: LayoutComponent {
     }
     
     public var constraints: [Constraint] {
-        fatalError()
+        [makeConstraint()]
     }
 }
+

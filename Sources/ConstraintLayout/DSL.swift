@@ -1,9 +1,4 @@
-//
-//  File.swift
-//  
-//
-//  Created by Benjamin Pious on 2/7/21.
-//
+import UIKit
 
 @_functionBuilder
 struct LayoutBuilder {
@@ -42,9 +37,17 @@ public protocol LayoutComponent {
     
 }
 
-public protocol LayoutItem {
+public protocol ConstraintTarget {
     
     func apply(to constraint: inout ConstraintBuilder)
+    
+}
+
+extension Int: ConstraintTarget {
+    
+    public func apply(to constraint: inout ConstraintBuilder) {
+        constraint.constant = CGFloat(self)
+    }
     
 }
 

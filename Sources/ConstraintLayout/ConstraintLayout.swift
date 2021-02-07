@@ -6,44 +6,43 @@ public protocol DeclarativeLayout: UIView {
     
 }
 
-extension InsertedView: LayoutItem where T: AnyObject {
+extension InsertedView: ConstraintTarget where T: AnyObject {
     
     public func apply(to constraint: inout ConstraintBuilder) {
         constraint.second = wrapped
         constraint.secondAttribute = constraint.firstAttribute
     }
 
-    
     subscript<U>(dynamicMember member: KeyPath<T, U>) -> U {
         wrapped[keyPath: member]
     }
     
-    var leading: LayoutBase {
+    var leading: LayoutAnchor {
         .init(base: wrapped,
               attribute: .leading)
     }
     
-    var trailing: LayoutBase {
+    var trailing: LayoutAnchor {
         .init(base: wrapped,
               attribute: .trailing)
     }
     
-    var top: LayoutBase {
+    var top: LayoutAnchor {
         .init(base: wrapped,
               attribute: .top)
     }
     
-    var bottom: LayoutBase {
+    var bottom: LayoutAnchor {
         .init(base: wrapped,
               attribute: .bottom)
     }
 
-    var width: LayoutBase {
+    var width: LayoutAnchor {
         .init(base: wrapped,
               attribute: .width)
     }
     
-    var height: LayoutBase {
+    var height: LayoutAnchor {
         .init(base: wrapped,
               attribute: .height)
     }
@@ -83,6 +82,15 @@ extension InsertedView where T: EitherProtocol {
     
 }
 
+extension InsertedView.LayoutAnchor: ConstraintTarget where T: AnyObject {
+    
+    public func apply(to constraint: inout ConstraintBuilder) {
+        constraint.second = base
+        constraint.secondAttribute = attribute
+    }
+    
+}
+
 @dynamicMemberLookup
 public struct InsertedView<T> {
     
@@ -92,27 +100,30 @@ public struct InsertedView<T> {
     
     let wrapped: T
         
-    struct LayoutBase {
-        
+    public struct LayoutAnchor {
+                
         let base: AnyObject
         let attribute: Constraint.Attribute
         
-        public func equalTo(_ layoutItem: LayoutItem) -> ConstraintBuilder {
-            var builder = ConstraintBuilder(firstAttribute: attribute,
+        public func equalTo(_ layoutItem: ConstraintTarget) -> ConstraintBuilder where T: AnyObject {
+            var builder = ConstraintBuilder(first: base,
+                                            firstAttribute: attribute,
                                             relationShip: .equalTo)
             layoutItem.apply(to: &builder)
             return builder
         }
         
-        public func greaterThan(_ layoutItem: LayoutItem) -> ConstraintBuilder {
-            var builder = ConstraintBuilder(firstAttribute: attribute,
+        public func greaterThan(_ layoutItem: ConstraintTarget) -> ConstraintBuilder where T: AnyObject {
+            var builder = ConstraintBuilder(first: base,
+                                            firstAttribute: attribute,
                                             relationShip: .greaterThan)
             layoutItem.apply(to: &builder)
             return builder
         }
         
-        public func lessThan(_ layoutItem: LayoutItem) -> ConstraintBuilder {
-            var builder = ConstraintBuilder(firstAttribute: attribute,
+        public func lessThan(_ layoutItem: ConstraintTarget) -> ConstraintBuilder where T: AnyObject {
+            var builder = ConstraintBuilder(first: base,
+                                            firstAttribute: attribute,
                                             relationShip: .greaterThan)
             layoutItem.apply(to: &builder)
             return builder
@@ -391,7 +402,8 @@ class View: UIView, DeclarativeLayout {
             }
         } constraints: { (a, b) in
             if let b = b.first, shouldAddLeading {
-                a.leading.equalTo(b)
+                a.leading.equalTo(b.trailing)
+                a.width.equalTo(7)
             }
         }
     }
