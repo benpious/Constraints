@@ -6,43 +6,51 @@ public protocol DeclarativeLayout: UIView {
     
 }
 
-extension InsertedView: ConstraintTarget where T: AnyObject {
+extension InsertedView: ConstraintTarget, ConstraintEdgesTarget where T: AnyObject {
+    
+    public func apply(to edges: inout EdgesConstraintBuilder) {
+        edges.second = .sibiling(wrapped)
+    }
     
     public func apply(to constraint: inout ConstraintBuilder) {
-        constraint.second = wrapped
         constraint.secondAttribute = constraint.firstAttribute
+        constraint.second = .sibiling(wrapped)
     }
 
-    subscript<U>(dynamicMember member: KeyPath<T, U>) -> U {
+    public subscript<U>(dynamicMember member: KeyPath<T, U>) -> U {
         wrapped[keyPath: member]
     }
+
+    public var edges: EdgesAnchor {
+        .init(base: wrapped)
+    }
     
-    var leading: LayoutAnchor {
+    public var leading: LayoutAnchor {
         .init(base: wrapped,
               attribute: .leading)
     }
     
-    var trailing: LayoutAnchor {
+    public var trailing: LayoutAnchor {
         .init(base: wrapped,
               attribute: .trailing)
     }
     
-    var top: LayoutAnchor {
+    public var top: LayoutAnchor {
         .init(base: wrapped,
               attribute: .top)
     }
     
-    var bottom: LayoutAnchor {
+    public var bottom: LayoutAnchor {
         .init(base: wrapped,
               attribute: .bottom)
     }
 
-    var width: LayoutAnchor {
+    public var width: LayoutAnchor {
         .init(base: wrapped,
               attribute: .width)
     }
     
-    var height: LayoutAnchor {
+    public var height: LayoutAnchor {
         .init(base: wrapped,
               attribute: .height)
     }
@@ -61,7 +69,7 @@ public extension InsertedView where T: LayoutOptionalProtocol {
     
 }
 
-extension InsertedView where T: EitherProtocol {
+public extension InsertedView where T: EitherProtocol {
     
     var first: InsertedView<T.First>? {
         if let first = wrapped.first {
@@ -85,7 +93,7 @@ extension InsertedView where T: EitherProtocol {
 extension InsertedView.LayoutAnchor: ConstraintTarget where T: AnyObject {
     
     public func apply(to constraint: inout ConstraintBuilder) {
-        constraint.second = base
+        constraint.second = .sibiling(base)
         constraint.secondAttribute = attribute
     }
     
@@ -102,8 +110,17 @@ public struct InsertedView<T> {
         
     public struct LayoutAnchor {
                 
-        let base: AnyObject
+        let base: T
         let attribute: Constraint.Attribute
+        
+        public func equalToSuperview() -> ConstraintBuilder where T: UIView {
+            var builder = ConstraintBuilder(first: base,
+                                            firstAttribute: attribute,
+                                            relationShip: .equalTo)
+            builder.second = .superview(base)
+            builder.secondAttribute = builder.firstAttribute
+            return builder
+        }
         
         public func equalTo(_ layoutItem: ConstraintTarget) -> ConstraintBuilder where T: AnyObject {
             var builder = ConstraintBuilder(first: base,
@@ -133,7 +150,15 @@ public struct InsertedView<T> {
     
     public struct EdgesAnchor {
                 
-        let base: AnyObject
+        let base: T
+        
+        public func equalToSuperview() -> EdgesConstraintBuilder where T: UIView {
+            var builder = EdgesConstraintBuilder(first: base,
+                                                 relationShip: .equalTo)
+            builder.second = .superview(base)
+            return builder
+        }
+
         
         public func equalTo(_ layoutItem: ConstraintEdgesTarget) -> EdgesConstraintBuilder where T: AnyObject {
             var builder = EdgesConstraintBuilder(first: base,
@@ -200,7 +225,7 @@ extension DeclarativeLayout {
             if let managedConstraints = associatedObject as? [String: NSLayoutConstraint] {
                 return managedConstraints
             } else {
-                fatalError("Found object of type \(type(of: associatedObject)), but expected object of type [String: NSLayoutConstraint].")
+                return [:]
             }
         }
         set {
@@ -219,7 +244,7 @@ extension DeclarativeLayout {
             if let managedViews = associatedObject as? [ObjectIdentifier: UIView] {
                 return managedViews
             } else {
-                fatalError("Found object of type \(type(of: associatedObject)), but expected object of type [String: NSLayoutConstraint].")
+                return [:]
             }
         }
         set {
@@ -263,6 +288,7 @@ public struct Layout {
                                        at: index)
                 }
             } else {
+                child.translatesAutoresizingMaskIntoConstraints = false
                 view.insertSubview(child,
                                    at: index)
             }
@@ -280,6 +306,7 @@ public struct Layout {
                 new[constraint.identifier] = existing
             } else {
                 let newLayoutConstraint = constraint.makeConstraint()
+                newLayoutConstraint.isActive = true
                 new[constraint.identifier] = newLayoutConstraint
             }
         }
@@ -296,19 +323,21 @@ public struct Constraint {
     init(
         first: AnyObject,
         firstAttribute: Constraint.Attribute,
-        second: AnyObject?,
+        second: SecondItem?,
         secondAttribute: Constraint.Attribute,
         constant: CGFloat,
         multiple: CGFloat,
         relationShip: Constraint.Relation,
         priority: Float
     ) {
-        var identifierForSecondItem: String {
-            second
-                .map(ObjectIdentifier.init)
-                .map(String.init(describing: )) ?? "nil"
+        var secondItemIdentifier:String {
+            if let second = second {
+                return String(describing: second)
+            } else {
+                return "nil"
+            }
         }
-        identifier = "\(ObjectIdentifier(first))\(identifierForSecondItem)\(firstAttribute)\(secondAttribute)\(multiple)\(priority)"
+        identifier = "\(ObjectIdentifier(first))\(secondItemIdentifier)\(firstAttribute)\(secondAttribute)\(multiple)\(priority)"
         self.first = first
         self.firstAttribute = firstAttribute
         self.second = second
@@ -377,10 +406,26 @@ public struct Constraint {
         
     }
     
+    enum SecondItem {
+        
+        case superview(UIView)
+        case sibiling(AnyObject)
+        
+        func object(in object: AnyObject) -> AnyObject? {
+            switch self {
+            case .superview:
+                return object.superview
+            case .sibiling(let object):
+                return object
+            }
+        }
+    }
+
+    
     let identifier: String
     let first: AnyObject
     let firstAttribute: Attribute
-    let second: AnyObject?
+    let second: SecondItem?
     let secondAttribute: Attribute
     let constant: CGFloat
     let multiple: CGFloat
@@ -392,7 +437,7 @@ public struct Constraint {
             item: first,
             attribute: firstAttribute.asNSLayoutAttribute,
             relatedBy: relationShip.asNSLayoutRelation,
-            toItem: second,
+            toItem: second?.object(in: first) ?? nil,
             attribute: secondAttribute.asNSLayoutAttribute,
             multiplier: multiple,
             constant: constant

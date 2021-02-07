@@ -1,6 +1,6 @@
 import UIKit
 
-protocol ViewHierarchyComponent {
+public protocol ViewHierarchyComponent {
     
 }
 
@@ -36,7 +36,7 @@ extension Layout {
 }
 
 public struct ViewHierarchy1<A> {
-     
+    
     init(@ViewHierarchyBuilder _ hierarchy: () -> (ViewHierarchy1)) {
         self = hierarchy()
     }
@@ -54,16 +54,16 @@ public struct ViewHierarchy1<A> {
     var views: [UIView] {
         [a].compactMap { $0 as? UIView }
     }
-
+    
 }
 
 public struct ViewHierarchy2<A, B> {
-     
+    
     init(@ViewHierarchyBuilder _ hierarchy: () -> (ViewHierarchy2)) {
         self = hierarchy()
     }
     
-    init(a: A, b: B) {
+    public init(a: A, b: B) {
         self.a = a
         self.b = b
     }
@@ -86,31 +86,31 @@ extension Optional: ViewHierarchyComponent where Wrapped: ViewHierarchyComponent
 }
 
 @_functionBuilder
-struct ViewHierarchyBuilder {
+public struct ViewHierarchyBuilder {
     
-    typealias Component = ViewHierarchyComponent
+    public typealias Component = ViewHierarchyComponent
     
-    static func buildBlock<A>(_ a: A) -> A where A: Component {
+    public static func buildBlock<A>(_ a: A) -> A where A: Component {
         a
     }
     
-    static func buildBlock<A>(_ a: A) -> ViewHierarchy1<A> where A: Component {
+    public static func buildBlock<A>(_ a: A) -> ViewHierarchy1<A> where A: Component {
         .init(a: a)
     }
     
-    static func buildBlock<A, B>(_ a: A, _ b: B) -> ViewHierarchy2<A, B> where A: Component, B: Component {
+    public static func buildBlock<A, B>(_ a: A, _ b: B) -> ViewHierarchy2<A, B> where A: Component, B: Component {
         .init(a: a, b: b)
     }
     
-        static func buildEither<A, B>(first component: A) -> Either<A, B> where A: Component, B: Component {
-            Either(first: component)
-        }
-        
-        static func buildEither<A, B>(second component: B) -> Either<A, B> where A: Component, B: Component {
-            Either(second: component)
-        }
-            
-    static func buildIf<A>(_ component: ViewHierarchy1<A>?) -> A? where A: Component {
+    public static func buildEither<A, B>(first component: A) -> Either<A, B> where A: Component, B: Component {
+        Either(first: component)
+    }
+    
+    public static func buildEither<A, B>(second component: B) -> Either<A, B> where A: Component, B: Component {
+        Either(second: component)
+    }
+    
+    public static func buildIf<A>(_ component: ViewHierarchy1<A>?) -> A? where A: Component {
         if let component = component {
             return component.a
         } else {
@@ -120,7 +120,7 @@ struct ViewHierarchyBuilder {
     
 }
 
-protocol EitherProtocol {
+public protocol EitherProtocol {
     
     associatedtype First
     associatedtype Second
@@ -129,10 +129,10 @@ protocol EitherProtocol {
     var second: Second? { get }
 }
 
-struct Either<First, Second>: EitherProtocol, ViewHierarchyComponent where First: ViewHierarchyComponent, Second: ViewHierarchyComponent {
-
-    var first: First? = nil
-    var second: Second? = nil
-
+public struct Either<First, Second>: EitherProtocol, ViewHierarchyComponent where First: ViewHierarchyComponent, Second: ViewHierarchyComponent {
+    
+    public var first: First? = nil
+    public var second: Second? = nil
+    
 }
 

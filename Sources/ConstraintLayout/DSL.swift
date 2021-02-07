@@ -1,23 +1,23 @@
 import UIKit
 
 @_functionBuilder
-struct LayoutBuilder {
+public struct LayoutBuilder {
         
-    typealias Component = LayoutComponent
+    public typealias Component = LayoutComponent
     
-    static func buildBlock(_ components: Component...) -> Component {
+    public static func buildBlock(_ components: Component...) -> Component {
         Array(components.map(\.constraints).joined())
     }
     
-    static func buildEither(first component: Component) -> Component {
+    public static func buildEither(first component: Component) -> Component {
         component
     }
     
-    static func buildEither(second component: Component) -> Component {
+    public static func buildEither(second component: Component) -> Component {
         component
     }
     
-    static func buildIf(_ component: Component?) -> Component {
+    public static func buildIf(_ component: Component?) -> Component {
         if let component = component {
             return component
         } else {
@@ -25,7 +25,7 @@ struct LayoutBuilder {
         }
     }
     
-    static func buildFinalResult(_ component: Component) -> [Constraint] {
+    public static func buildFinalResult(_ component: Component) -> [Constraint] {
         component.constraints
     }
     

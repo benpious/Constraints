@@ -1,13 +1,13 @@
 import UIKit
 
 public struct ConstraintBuilder: LayoutComponent {
-    
+        
     let first: AnyObject
     let firstAttribute: Constraint.Attribute
-    var second: AnyObject? = nil
+    var second: Constraint.SecondItem? = nil
     var secondAttribute: Constraint.Attribute = .noAttribute
     var constant: CGFloat = 0
-    var multiple: CGFloat = 0
+    var multiple: CGFloat = 1
     var relationShip: Constraint.Relation
     var priority: Float = 1000
     
@@ -20,7 +20,8 @@ public struct ConstraintBuilder: LayoutComponent {
             constant: constant,
             multiple: multiple,
             relationShip: relationShip,
-            priority: priority)
+            priority: priority
+        )
     }
     
     public func priority(_ priority: Float) -> Self {
@@ -49,9 +50,9 @@ public struct ConstraintBuilder: LayoutComponent {
 public struct EdgesConstraintBuilder: LayoutComponent {
     
     let first: AnyObject
-    var second: AnyObject? = nil
+    var second: Constraint.SecondItem? = nil
     var constant: CGFloat = 0
-    var multiple: CGFloat = 0
+    var multiple: CGFloat = 1
     var relationShip: Constraint.Relation
     var priority: Float = 1000
     
@@ -64,7 +65,7 @@ public struct EdgesConstraintBuilder: LayoutComponent {
         ].map { attribute, constant in
             Constraint(first: first,
                        firstAttribute: attribute,
-                       second: second,
+                       second: second!, // TODO
                        secondAttribute: attribute,
                        constant: constant,
                        multiple: multiple,
