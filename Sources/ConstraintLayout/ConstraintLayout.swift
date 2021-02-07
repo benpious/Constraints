@@ -6,6 +6,64 @@ public protocol DeclarativeLayout: UIView {
     
 }
 
+@dynamicMemberLookup
+public struct ViewLayoutWrapper<T>: LayoutItem where T: AnyObject {
+    
+    public func apply(to constraint: inout ConstraintBuilder) {
+        constraint.second = wrappped
+        constraint.secondAttribute = constraint.firstAttribute
+    }
+    
+    let wrappped: T
+    
+    subscript<U>(dynamicMember member: KeyPath<T, U>) -> U {
+        wrappped[keyPath: member]
+    }
+    
+    var leading: LayoutBase {
+        .init(base: wrappped,
+              attribute: .leading)
+    }
+    
+    var trailing: LayoutBase {
+        .init(base: wrappped,
+              attribute: .trailing)
+    }
+    
+    struct LayoutBase {
+        
+        let base: AnyObject
+        let attribute: Constraint.Attribute
+        
+        public func equalTo(_ layoutItem: LayoutItem) -> ConstraintBuilder {
+            var builder = ConstraintBuilder(firstAttribute: attribute,
+                                            relationShip: .equalTo)
+            layoutItem.apply(to: &builder)
+            return builder
+        }
+        
+        public func greaterThan(_ layoutItem: LayoutItem) -> ConstraintBuilder {
+            var builder = ConstraintBuilder(firstAttribute: attribute,
+                                            relationShip: .greaterThan)
+            layoutItem.apply(to: &builder)
+            return builder
+        }
+        
+        public func lessThan(_ layoutItem: LayoutItem) -> ConstraintBuilder {
+            var builder = ConstraintBuilder(firstAttribute: attribute,
+                                            relationShip: .greaterThan)
+            layoutItem.apply(to: &builder)
+            return builder
+        }
+
+        
+        
+    }
+
+    
+    
+}
+
 @propertyWrapper
 public final class LayoutInput<T>: LayoutInputting {
     
@@ -253,14 +311,16 @@ class View: UIView, DeclarativeLayout {
     }
     
     var layout: Layout {
-        ViewHierarchy {
+        ViewHierarchy2({
             UIView()
             if shouldAddLeading {
                 UIView()
             }
-        }
-        .layout { hierarchy in
-            
+        })
+        .layout { (a: ViewLayoutWrapper<UIView>, c: ViewLayoutWrapper<UIView>?) in
+            if let c = c {
+                a.leading.equalTo(c)
+            }
         }
     }
     
