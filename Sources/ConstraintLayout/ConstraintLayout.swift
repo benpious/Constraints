@@ -252,15 +252,27 @@ class View: UIView, DeclarativeLayout {
         fatalError("init(coder:) has not been implemented")
     }
     
-    @LayoutBuilder
     var layout: Layout {
-        if shouldAddLeading {
-            Leading.equalTo(UIView().leading).priority(1000).offset(10)
-        } else {
-            Leading.equalTo(UIView().leading).priority(1000).offset(10)
+        ViewHierarchy {
+            UIView()
+            if shouldAddLeading {
+                UIView()
+            }
         }
-        Trailing.equalTo(UIView().trailing)
+        .layout { hierarchy in
+            
+        }
     }
+    
+//    @LayoutBuilder
+//    var layout: Layout {
+//        if shouldAddLeading {
+//            Leading.equalTo(UIView().leading).priority(1000).offset(10)
+//        } else {
+//            Leading.equalTo(UIView().leading).priority(1000).offset(10)
+//        }
+//        Trailing.equalTo(UIView().trailing)
+//    }
 
     @LayoutInput
     var shouldAddLeading = false

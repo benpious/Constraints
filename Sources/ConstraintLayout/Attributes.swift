@@ -26,9 +26,26 @@ protocol LayoutAttributeWord {
 extension LayoutAttributeWord {
     
     public static func equalTo(_ layoutItem: LayoutItem) -> ConstraintBuilder {
-        var builder = ConstraintBuilder(firstAttribute: attribute)
+        var builder = ConstraintBuilder(firstAttribute: attribute,
+                                        relationShip: .equalTo)
         layoutItem.apply(to: &builder)
         return builder
     }
+    
+    public static func greaterThan(_ layoutItem: LayoutItem) -> ConstraintBuilder {
+        var builder = ConstraintBuilder(firstAttribute: attribute,
+                                        relationShip: .greaterThan)
+        layoutItem.apply(to: &builder)
+        return builder
+    }
+    
+    public static func lessThan(_ layoutItem: LayoutItem) -> ConstraintBuilder {
+        var builder = ConstraintBuilder(firstAttribute: attribute,
+                                        relationShip: .greaterThan)
+        layoutItem.apply(to: &builder)
+        return builder
+    }
+
+
 
 }
