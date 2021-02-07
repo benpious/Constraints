@@ -43,10 +43,20 @@ public protocol ConstraintTarget {
     
 }
 
-extension Int: ConstraintTarget {
+public protocol ConstraintEdgesTarget {
+    
+    func apply(to edges: inout EdgesConstraintBuilder)
+    
+}
+
+extension Int: ConstraintTarget, ConstraintEdgesTarget {
     
     public func apply(to constraint: inout ConstraintBuilder) {
         constraint.constant = CGFloat(self)
+    }
+    
+    public func apply(to edges: inout EdgesConstraintBuilder) {
+        edges.constant = CGFloat(self)
     }
     
 }

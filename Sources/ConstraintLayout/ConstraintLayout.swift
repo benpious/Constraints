@@ -131,6 +131,34 @@ public struct InsertedView<T> {
 
     }
     
+    public struct EdgesAnchor {
+                
+        let base: AnyObject
+        
+        public func equalTo(_ layoutItem: ConstraintEdgesTarget) -> EdgesConstraintBuilder where T: AnyObject {
+            var builder = EdgesConstraintBuilder(first: base,
+                                                 relationShip: .equalTo)
+            layoutItem.apply(to: &builder)
+            return builder
+        }
+        
+        public func greaterThan(_ layoutItem: ConstraintEdgesTarget) -> EdgesConstraintBuilder where T: AnyObject {
+            var builder = EdgesConstraintBuilder(first: base,
+                                                 relationShip: .greaterThan)
+            layoutItem.apply(to: &builder)
+            return builder
+        }
+        
+        public func lessThan(_ layoutItem: ConstraintEdgesTarget) -> EdgesConstraintBuilder where T: AnyObject {
+            var builder = EdgesConstraintBuilder(first: base,
+                                                 relationShip: .greaterThan)
+            layoutItem.apply(to: &builder)
+            return builder
+        }
+
+    }
+
+    
 }
 
 @propertyWrapper

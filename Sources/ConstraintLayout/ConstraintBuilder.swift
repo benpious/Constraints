@@ -19,7 +19,7 @@ public struct ConstraintBuilder: LayoutComponent {
             secondAttribute: secondAttribute,
             constant: constant,
             multiple: multiple,
-            relationShip: relationShip, 
+            relationShip: relationShip,
             priority: priority)
     }
     
@@ -46,3 +46,34 @@ public struct ConstraintBuilder: LayoutComponent {
     }
 }
 
+public struct EdgesConstraintBuilder: LayoutComponent {
+    
+    let first: AnyObject
+    var second: AnyObject? = nil
+    var constant: CGFloat = 0
+    var multiple: CGFloat = 0
+    var relationShip: Constraint.Relation
+    var priority: Float = 1000
+    
+    public var constraints: [Constraint] {
+        [
+            (Constraint.Attribute.leading, constant),
+            (Constraint.Attribute.top, constant),
+            (Constraint.Attribute.trailing, -constant),
+            (Constraint.Attribute.bottom, -constant),
+        ].map { attribute, constant in
+            Constraint(first: first,
+                       firstAttribute: attribute,
+                       second: second,
+                       secondAttribute: attribute,
+                       constant: constant,
+                       multiple: multiple,
+                       relationShip: relationShip,
+                       priority: priority)
+        }
+    }
+    
+
+
+
+}
