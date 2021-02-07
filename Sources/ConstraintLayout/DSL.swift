@@ -26,19 +26,13 @@ struct LayoutBuilder {
         if let component = component {
             return component
         } else {
-            return EmptyComponent()
+            return []
         }
     }
     
     static func buildFinalResult(_ component: Component) -> [Constraint] {
         component.constraints
     }
-    
-}
-
-class EmptyComponent: LayoutComponent {
-    
-    let constraints: [Constraint] = []
     
 }
 

@@ -27,6 +27,26 @@ extension InsertedView: LayoutItem where T: AnyObject {
         .init(base: wrapped,
               attribute: .trailing)
     }
+    
+    var top: LayoutBase {
+        .init(base: wrapped,
+              attribute: .top)
+    }
+    
+    var bottom: LayoutBase {
+        .init(base: wrapped,
+              attribute: .bottom)
+    }
+
+    var width: LayoutBase {
+        .init(base: wrapped,
+              attribute: .width)
+    }
+    
+    var height: LayoutBase {
+        .init(base: wrapped,
+              attribute: .height)
+    }
 
 }
 
@@ -230,18 +250,6 @@ public struct Layout {
         view._managedConstraints = new
     }
     
-}
-
-public struct LayoutAnchor: LayoutItem {
-    
-    let view: UIView
-    let attribute: Constraint.Attribute
-    
-    public func apply(to constraint: inout ConstraintBuilder) {
-        constraint.second = view
-        constraint.secondAttribute = attribute
-    }
-        
 }
 
 public struct Constraint {

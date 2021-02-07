@@ -10,9 +10,9 @@ import UIKit
 public struct ConstraintBuilder: LayoutComponent {
     
     let firstAttribute: Constraint.Attribute
-    public var second: AnyObject? = nil
+    var second: AnyObject? = nil
     var secondAttribute: Constraint.Attribute = .noAttribute
-    public var constant: CGFloat = 0
+    var constant: CGFloat = 0
     var multiple: CGFloat = 0
     var relationShip: Constraint.Relation?
     var priority: Float = 1000
