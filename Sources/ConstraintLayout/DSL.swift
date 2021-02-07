@@ -6,7 +6,7 @@ public struct LayoutBuilder {
     public typealias Component = LayoutComponent
     
     public static func buildBlock(_ components: Component...) -> Component {
-        Array(components.map(\.constraints).joined())
+        buildArray(components)
     }
     
     public static func buildEither(first component: Component) -> Component {
@@ -27,6 +27,10 @@ public struct LayoutBuilder {
     
     public static func buildFinalResult(_ component: Component) -> [Constraint] {
         component.constraints
+    }
+    
+    public static func buildArray(_ components: [Component]) -> Component {
+        Array(components.map(\.constraints).joined())
     }
     
 }
