@@ -63,7 +63,7 @@ with `ConstraintLayout`:
 For safety, `ConstraintLayout` forces you to add views in a way that allows it to
 verify that the views are in the view hierarchy, _provided that you never mutate the
 `subviews` property of your view yourself_. To add views, you simply write them out in
-the order of the depth you want them to be shown:
+the order of the depth you want them to be shown:
 
 ```
 Layout {
