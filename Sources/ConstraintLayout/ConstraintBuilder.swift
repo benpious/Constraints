@@ -87,26 +87,46 @@ public struct EdgesConstraintBuilder: LayoutComponent {
     var multiple: CGFloat = 1
     var relationShip: Constraint.Relation
     var priority: Float = 1000
+    let attributes: Set<Constraint.Attribute>
+    
+    init(first: AnyObject,
+         relationShip: Constraint.Relation,
+         attributes: Set<Constraint.Attribute>) {
+        self.first = first
+        self.relationShip = relationShip
+        self.attributes = attributes
+    }
     
     public var constraints: [Constraint] {
-        [
-            (Constraint.Attribute.leading, constant),
-            (Constraint.Attribute.top, constant),
-            (Constraint.Attribute.trailing, -constant),
-            (Constraint.Attribute.bottom, -constant),
-        ].map { attribute, constant in
-            Constraint(first: first,
-                       firstAttribute: attribute,
-                       second: second,
-                       secondAttribute: attribute,
-                       constant: constant,
-                       multiple: multiple,
-                       relationShip: relationShip,
-                       priority: priority)
+        attributes
+            .map { ($0, $0.sign(constant) )}
+            .map { attribute, constant in
+                Constraint(first: first,
+                           firstAttribute: attribute,
+                           second: second,
+                           secondAttribute: attribute,
+                           constant: constant,
+                           multiple: multiple,
+                           relationShip: relationShip,
+                           priority: priority)
+            }
+    }
+    
+}
+
+
+extension Constraint.Attribute {
+    
+    var sign: (CGFloat) -> (CGFloat) {
+        switch self {
+        case .trailing, .bottom: return (-)
+        default:
+            func identity(_ float: CGFloat) -> CGFloat {
+                float
+            }
+            return identity(_:)
         }
     }
     
-
-
-
 }
+

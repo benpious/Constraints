@@ -247,6 +247,36 @@ public struct InsertedView<T> {
         let base: T
         let attribute: Constraint.Attribute
         
+        public var leading: EdgesAnchor {
+            .init(base: base,
+                  edges: [attribute, .leading])
+        }
+        
+        public var trailing: EdgesAnchor {
+            .init(base: base,
+                  edges: [attribute, .trailing])
+        }
+        
+        public var top: EdgesAnchor {
+            .init(base: base,
+                  edges: [attribute, .top])
+        }
+
+        public var bottom: EdgesAnchor {
+            .init(base: base,
+                  edges: [attribute, .bottom])
+        }
+        
+        public func equalToSafeArea() -> ConstraintBuilder where T: UIView {
+            var builder = ConstraintBuilder(first: base,
+                                            firstAttribute: attribute,
+                                            relationShip: .equalTo)
+            builder.second = .safeArea(base)
+            builder.secondAttribute = builder.firstAttribute
+            return builder
+        }
+
+        
         public func equalToSuperview() -> ConstraintBuilder where T: UIView {
             var builder = ConstraintBuilder(first: base,
                                             firstAttribute: attribute,
@@ -283,12 +313,44 @@ public struct InsertedView<T> {
     }
     
     public struct EdgesAnchor {
+        
+        init(base: T,
+             edges: Set<Constraint.Attribute> = Constraint.Attribute.edges) {
+            self.base = base
+            self.edges = edges
+        }
                 
         let base: T
+        let edges: Set<Constraint.Attribute>
+        
+        public var leading: EdgesAnchor {
+            .init(base: base,
+                  edges: edges.inserting(.leading))
+        }
+        
+        public var trailing: EdgesAnchor {
+            .init(base: base,
+                  edges: edges.inserting(.trailing))
+        }
+        
+        public var top: EdgesAnchor {
+            .init(base: base,
+                  edges: edges.inserting(.top))
+        }
+        
+        public func equalToSafeArea() -> EdgesConstraintBuilder where T: UIView {
+            var builder = EdgesConstraintBuilder(first: base,
+                                                 relationShip: .equalTo,
+                                                 attributes: edges)
+            builder.second = .safeArea(base)
+            return builder
+
+        }
         
         public func equalToSuperview() -> EdgesConstraintBuilder where T: UIView {
             var builder = EdgesConstraintBuilder(first: base,
-                                                 relationShip: .equalTo)
+                                                 relationShip: .equalTo,
+                                                 attributes: edges)
             builder.second = .superview(base)
             return builder
         }
@@ -296,21 +358,24 @@ public struct InsertedView<T> {
         
         public func equalTo(_ layoutItem: ConstraintEdgesTarget) -> EdgesConstraintBuilder where T: AnyObject {
             var builder = EdgesConstraintBuilder(first: base,
-                                                 relationShip: .equalTo)
+                                                 relationShip: .equalTo,
+                                                 attributes: edges)
             layoutItem.apply(to: &builder)
             return builder
         }
         
         public func greaterThan(_ layoutItem: ConstraintEdgesTarget) -> EdgesConstraintBuilder where T: AnyObject {
             var builder = EdgesConstraintBuilder(first: base,
-                                                 relationShip: .greaterThan)
+                                                 relationShip: .greaterThan,
+                                                 attributes: edges)
             layoutItem.apply(to: &builder)
             return builder
         }
         
         public func lessThan(_ layoutItem: ConstraintEdgesTarget) -> EdgesConstraintBuilder where T: AnyObject {
             var builder = EdgesConstraintBuilder(first: base,
-                                                 relationShip: .greaterThan)
+                                                 relationShip: .greaterThan,
+                                                 attributes: edges)
             layoutItem.apply(to: &builder)
             return builder
         }
@@ -518,6 +583,15 @@ public struct Constraint {
     
     enum Attribute: Hashable {
         
+        static var edges: Set<Self> {
+            [
+                .leading,
+                .trailing,
+                .top,
+                .bottom
+            ]
+        }
+        
         case leading
         case trailing
         case height
@@ -556,6 +630,7 @@ public struct Constraint {
     enum SecondItem {
         
         case superview(UIView)
+        case safeArea(UIView)
         case sibiling(AnyObject)
         
         func object(in object: AnyObject) -> AnyObject? {
@@ -564,6 +639,14 @@ public struct Constraint {
                 return object.superview
             case .sibiling(let object):
                 return object
+            case .safeArea(let object):
+                if #available(iOS 11.0, *) {
+                    return object.superview?.safeAreaLayoutGuide
+                } else {
+                    // TODO: set minimum deployment target to 11.0
+                    assertionFailure("TODO: set minimum deployment target to 11.0")
+                    return object.superview
+                }
             }
         }
     }
@@ -597,3 +680,12 @@ public struct Constraint {
     
 }
 
+fileprivate extension Set {
+    
+    func inserting(_ toInsert: Self.Element) -> Self {
+        var new = self
+        new.insert(toInsert)
+        return new
+    }
+    
+}
