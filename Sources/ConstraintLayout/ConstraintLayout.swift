@@ -542,14 +542,14 @@ public struct Constraint {
         relationShip: Constraint.Relation,
         priority: Float
     ) {
-        var secondItemIdentifier:String {
+        var secondItemIdentifier: String {
             if let second = second {
-                return String(describing: second)
+                return second.description
             } else {
                 return "nil"
             }
         }
-        identifier = "\(ObjectIdentifier(first))\(secondItemIdentifier)\(firstAttribute)\(secondAttribute)\(multiple)\(priority)"
+        identifier = "\(ObjectIdentifier(first))\(secondItemIdentifier)\(firstAttribute)\(secondAttribute)\(multiple)\(priority)\(relationShip)"
         self.first = first
         self.firstAttribute = firstAttribute
         self.second = second
@@ -627,7 +627,7 @@ public struct Constraint {
         
     }
     
-    enum SecondItem {
+    enum SecondItem: CustomStringConvertible {
         
         case superview(UIView)
         case safeArea(UIView)
@@ -647,6 +647,19 @@ public struct Constraint {
                     assertionFailure("TODO: set minimum deployment target to 11.0")
                     return object.superview
                 }
+            }
+        }
+        
+        var description: String {
+            // TODO: this is a very hacky way of getting a string out of the
+            // memory address
+            switch self {
+            case .superview(let view):
+                return String(ObjectIdentifier(view).hashValue)
+            case .safeArea(let view):
+                return String(ObjectIdentifier(view).hashValue)
+            case .sibiling(let sibiling):
+            return String(ObjectIdentifier(sibiling).hashValue)
             }
         }
     }
