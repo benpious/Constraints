@@ -505,6 +505,13 @@ public struct Layout {
         }
         view._managedViews = newManagedViews
         var managedConstraints = view._managedConstraints
+        var toDeactivate = managedConstraints
+        for constraint in constraints {
+            toDeactivate[constraint.identifier] = nil
+        }
+        for unused in toDeactivate.values {
+            unused.isActive = false
+        }
         var new: [String: NSLayoutConstraint] = [:]
         for constraint in constraints {
             if let existing = managedConstraints[constraint.identifier] {
@@ -516,9 +523,6 @@ public struct Layout {
                 newLayoutConstraint.isActive = true
                 new[constraint.identifier] = newLayoutConstraint
             }
-        }
-        for unused in managedConstraints.values {
-            unused.isActive = false
         }
         view._managedConstraints = new
     }
