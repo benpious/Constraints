@@ -81,7 +81,7 @@ import UIKit
  from above, we might write a constraint block that looks like this:
  
  ```
- layout: { myChildView, myOtherChildView, myThirdChildView in
+ constraints: { myChildView, myOtherChildView, myThirdChildView in
     myChildView.leading.equalToSuperview().offset(10)
     myOtherChildView.edges.equalTo(myChildView)
     if let myThirdChildView = myThirdChildView.unwrapped {
