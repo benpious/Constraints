@@ -11,11 +11,11 @@ The constraint API is heavily inspired by [SnapKit](https://github.com/SnapKit/S
 ## How is ConstraintLayout safer than raw Autolayout?
 
 The biggest danger in autolayout is trying to add a constraint to a view that isn't in the view hierarchy. These bugs
-are easy to write, espcially when dealing with state whose scope is beyond your view; keyboard notificatons 
+are easy to write, espcially when dealing with state whose scope is beyond your view; keyboard notifications 
 are a great example of this phenomenon. 
 
 `ConstraintLayout` makes autolayout safe by managing the view hierarchy for you, and ensuring at compile 
-time that it is impossible to add a constriant to a view that isn't in the view hierarchy.
+time that it is impossible to add a constraint to a view that isn't in the view hierarchy.
 
 Of course, the above is only true if you never mutate the view heirarchy or create constraints yourself. 
 
