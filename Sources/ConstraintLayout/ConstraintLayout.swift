@@ -490,9 +490,8 @@ public struct Layout {
             newManagedViews[identifier] = child
             if let oldIndex = view.subviews.firstIndex(of: child) {
                 if index != oldIndex {
-                    // TODO: does this cause constraints to be removed?
-                    view.insertSubview(child,
-                                       at: index)
+                    view.exchangeSubview(at: oldIndex,
+                                         withSubviewAt: view.subviews.count - 1)
                 }
             } else {
                 child.translatesAutoresizingMaskIntoConstraints = false
