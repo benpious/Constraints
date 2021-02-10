@@ -24,7 +24,7 @@ Of course, the above is only true if you never mutate the view heirarchy or crea
 
 Here is a minimal implementation of `DeclarativeLayout`:
 
-```
+```swift
 class <#MyView#>: UIView, DeclarativeLayout {
 
 init() {
@@ -65,7 +65,7 @@ verify that the views are in the view hierarchy, _provided that you never mutate
 `subviews` property of your view yourself_. To add views, you simply write them out in
 the order of the depth you want them to be shown:
 
-```
+```swift
 Layout {
    myChildView
    myOtherChildView
@@ -81,7 +81,7 @@ You can also use `if` statements with `else` to conditionally add views.
 Once you've added the views, you can start writing constraints. Continuing the example
 from above, we might write a constraint block that looks like this:
 
-```
+```swift
 constraints: { myChildView, myOtherChildView, myThirdChildView in
    myChildView.leading.equalToSuperview().offset(10)
    myOtherChildView.edges.equalTo(myChildView)
