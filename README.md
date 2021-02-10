@@ -1,20 +1,20 @@
-# ConstraintLayout
+# Constraints
 
 This library is still under construction. 
 
-## What is ConstraintLayout?
+## What is Constraints?
 
-`ConstraintLayout`  is a declarative autolayout library that prioritizes safety, clarity, and familiarity for users familiar with SwiftUI and layout anchors. It abstracts away state management and lets you write stateless constraints in the same way that you write stateless views in SwiftUI. 
+`Constraints`  is a declarative autolayout library that prioritizes safety, clarity, and familiarity for users familiar with SwiftUI and layout anchors. It abstracts away state management and lets you write stateless constraints in the same way that you write stateless views in SwiftUI. 
 
 The constraint API is heavily inspired by [SnapKit](https://github.com/SnapKit/SnapKit), though it leverages Swift Language features that were not available when that library was originally authored. 
 
-## How is ConstraintLayout safer than raw Autolayout?
+## How is Constraints safer than raw Autolayout?
 
 The biggest danger in autolayout is trying to add a constraint to a view that isn't in the view hierarchy. These bugs
 are easy to write, espcially when dealing with state whose scope is beyond your view; keyboard notifications 
 are a great example of this phenomenon. 
 
-`ConstraintLayout` makes autolayout safe by managing the view hierarchy for you, and ensuring at compile 
+`Constraints` makes autolayout safe by managing the view hierarchy for you, and ensuring at compile 
 time that it is impossible to add a constraint to a view that isn't in the view hierarchy.
 
 Of course, the above is only true if you never mutate the view heirarchy or create constraints yourself. 
@@ -52,7 +52,7 @@ var <#Add any Inputs...#>
 ```
 
 This example demonstrates the three things you need to know to get started
-with `ConstraintLayout`:
+with `Constraints`:
 
 - Constraints go in `layout`
 - You must call `prepareLayout()` for the layout code to actually be executed
@@ -60,7 +60,7 @@ with `ConstraintLayout`:
 
 ## Adding Views
 
-For safety, `ConstraintLayout` forces you to add views in a way that allows it to
+For safety, `Constraints` forces you to add views in a way that allows it to
 verify that the views are in the view hierarchy, _provided that you never mutate the
 `subviews` property of your view yourself_. To add views, you simply write them out in
 the order of the depth you want them to be shown:
